@@ -7,39 +7,36 @@ import json
 
 API_KEY = os.getenv("API_KEY")
 if not API_KEY:
-    API_KEY = "PEGA_AQUÍ_TU_API_KEY_PARA_PRUEBAS_LOCALES"   # ← Solo para pruebas en tu PC
+    API_KEY = "PEGA_AQUÍ_TU_API_KEY_PARA_PRUEBAS_LOCALES"   # ← Solo para pruebas locales
 
 BASE_URL = "https://open.faceit.com/data/v4"
 HEADERS = {"Authorization": f"Bearer {API_KEY}"}
 
-def get_spanish_ranking(max_pages=15):
+def get_spanish_ranking(max_pages=20):
     all_players = []
-    print("🚀 Iniciando búsqueda GLOBAL de jugadores españoles...")
+    print("🚀 Iniciando búsqueda de jugadores españoles (filtro manual)...")
 
     for page in range(max_pages):
         offset = page * 100
-        # Endpoint GLOBAL (sin /regions/eu) → suele funcionar mejor
-        url = f"{BASE_URL}/rankings/games/cs2?offset={offset}&limit=100"
+        url = f"{BASE_URL}/rankings/games/cs2/regions/eu?offset={offset}&limit=100"
         
         r = requests.get(url, headers=HEADERS)
         print(f"Página {page+1} → Status: {r.status_code}")
 
         if r.status_code != 200:
-            print(f"❌ Error: {r.text[:400]}")
+            print(f"❌ Error: {r.text[:300]}")
             break
 
         data = r.json().get("items", [])
-        print(f"   → {len(data)} jugadores en el ranking global")
+        print(f"   → {len(data)} jugadores en EU (antes de filtrar)")
 
-        if not data:
-            print("   → No hay más jugadores")
-            break
-
-        # Debug: mostramos el country de los primeros 5 jugadores para ver qué devuelve Faceit
-        if page == 0:
+        if page == 0 and data:   # Muestra los primeros países para debug
             print("   → Ejemplo de countries en página 1:")
             for p in data[:5]:
                 print(f"       {p.get('nickname')} → country = '{p.get('country')}'")
+
+        if not data:
+            break
 
         for p in data:
             country = str(p.get("country", "")).lower()
@@ -66,20 +63,20 @@ def get_spanish_ranking(max_pages=15):
                     "nickname": p["nickname"],
                     "player_id": player_id,
                     "elo": p.get("faceit_elo"),
-                    "level": p.get("game_skill_level") or p.get("skill_level"),
+                    "level": p.get("skill_level"),
                     "country": "ES",
                     "last_updated": datetime.now().isoformat(),
                     "map_stats": map_stats,
                     "lifetime_matches": stats.get("lifetime", {}).get("matches", "N/A")
                 })
 
-        time.sleep(0.7)
+        time.sleep(0.6)
 
     print(f"\n🎉 TOTAL JUGADORES ESPAÑOLES ENCONTRADOS: {len(all_players)}")
     df = pd.DataFrame(all_players)
     df.to_json("ranking_espana_cs2.json", orient="records", force_ascii=False, indent=2)
     df.to_csv("ranking_espana_cs2.csv", index=False)
-    print("✅ Archivos guardados")
+    print("✅ Archivos guardados correctamente")
     return df
 
 if __name__ == "__main__":
