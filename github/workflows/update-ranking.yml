@@ -1,0 +1,33 @@
+name: Actualizar Ranking España CS2
+
+on:
+  schedule:
+    - cron: '0 0 * * *'     # Cada día a las 00:00 (hora UTC)
+  workflow_dispatch:         # Para ejecutarlo manualmente cuando quieras
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Instalar dependencias
+        run: pip install requests pandas
+      
+      - name: Ejecutar script
+        env:
+          API_KEY: ${{ secrets.API_KEY }}     # ← Aquí va tu key secreta
+        run: python ranking_espana_cs2.py
+      
+      - name: Commit y push cambios
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add ranking_espana_cs2.json ranking_espana_cs2.csv
+          git commit -m "Actualización diaria del ranking España - $(date)" || echo "No changes to commit"
+          git push
