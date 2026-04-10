@@ -1,9 +1,13 @@
 name: Actualizar Ranking España CS2
 
+# Permiso explícito para poder hacer git push (obligatorio en repos privados)
+permissions:
+  contents: write
+
 on:
   schedule:
-    - cron: '0 0 * * *'     # Cada día a las 00:00 (hora UTC)
-  workflow_dispatch:         # Para ejecutarlo manualmente cuando quieras
+    - cron: '0 0 * * *'     # Cada día a las 00:00 UTC (02:00 España)
+  workflow_dispatch:         # Para ejecutarlo manualmente
 
 jobs:
   update:
@@ -21,7 +25,7 @@ jobs:
       
       - name: Ejecutar script
         env:
-          API_KEY: ${{ secrets.API_KEY }}     # ← Aquí va tu key secreta
+          API_KEY: ${{ secrets.API_KEY }}
         run: python ranking_espana_cs2.py
       
       - name: Commit y push cambios
