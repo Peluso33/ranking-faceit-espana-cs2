@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # ← importante para evitar conflictos
+          fetch-depth: 0
 
       - name: Instalar Python
         uses: actions/setup-python@v5
@@ -29,8 +29,8 @@ jobs:
           API_KEY: ${{ secrets.API_KEY }}
         run: python ranking_espana_cs2.py
       
-      - name: Pull latest changes (evita conflicto)
-        run: git pull --rebase
+      - name: Pull latest changes (arregla conflicto)
+        run: git pull --rebase origin main
       
       - name: Commit y push cambios
         run: |
@@ -38,4 +38,4 @@ jobs:
           git config --global user.email "actions@github.com"
           git add ranking_espana_cs2.json ranking_espana_cs2.csv
           git commit -m "Actualización diaria del ranking España - $(date)" || echo "No changes to commit"
-          git push
+          git push --force-with-lease
