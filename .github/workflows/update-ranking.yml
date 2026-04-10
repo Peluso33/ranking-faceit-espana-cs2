@@ -1,16 +1,21 @@
 name: Actualizar Ranking España CS2
 
+permissions:
+  contents: write
+
 on:
   schedule:
-    - cron: '0 0 * * *'     # Cada día a las 00:00 UTC (02:00 España)
-  workflow_dispatch:         # Para ejecutarlo manualmente
+    - cron: '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
   update:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+        with:
+          fetch-depth: 0   # ← importante para evitar conflictos
+
       - name: Instalar Python
         uses: actions/setup-python@v5
         with:
@@ -23,6 +28,9 @@ jobs:
         env:
           API_KEY: ${{ secrets.API_KEY }}
         run: python ranking_espana_cs2.py
+      
+      - name: Pull latest changes (evita conflicto)
+        run: git pull --rebase
       
       - name: Commit y push cambios
         run: |
